@@ -41,8 +41,11 @@ def segment(word, profile):
 
 def convert(segments, profile, column, missing="«{0}»"):
     return [
-            profile.get(s, {column : missing.format(s)})[column] for s in
-            segments]
+            profile.get(
+                s, {column : missing.format(s)}
+                ).get(
+                    column, missing.format("column--{0}-not-found".format(column))
+                    ) for s in segments]
 
 
 def retrieve_profile(
@@ -86,6 +89,9 @@ class OrthoProfile:
         return self.profile[idx]
 
     def __call__(self, sequence, column=None):
+        column = column or self.grapheme
+        if column not in self.columns:
+            raise ValueError("The column {0} is not available.".format(column))
         return [elm for elm in convert(segment(self.norm(sequence), self.profile),
                        self.profile, column or self.grapheme, self.missing) if elm != self.null]
     

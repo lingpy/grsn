@@ -1,6 +1,7 @@
 from grsn import segment, convert, OrthoProfile, retrieve_profile, unorm
 from pathlib import Path
 from csvw.dsv import UnicodeDictReader
+from pytest import raises
 
 
 def test_unorm():
@@ -62,6 +63,8 @@ def test_OrthoProfile():
     op4 = OrthoProfile.from_words(["mat the ma"], mapping=lambda x: x.split())
     op5 = OrthoProfile.from_words(["mat the ma".split()])
     assert op4("mat") == op5("mat")
+
+    assert raises(ValueError, op5, "mat", column="IPPA")
 
 def test_retrieve_profile():
     assert "th" in retrieve_profile(["m a th e m a t i cs"], mapping=lambda x: x.split())
