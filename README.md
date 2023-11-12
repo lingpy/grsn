@@ -57,4 +57,56 @@ You can modify this behaviour with the `missing` keyword:
 
 ## Extended Usage: `OrthoProfile` Class
 
+While `segment` and `convert` offer two basic functions that are equivalent in principle to the usage of orthography profiles as described by Moran and Cysouw (2018), they are not that convenient to use when dealing with externally stored orthography profiles that one wants to use to manipulate many different sequences. Here, the `OrthoProfile` class offers a more robust way to manipulate sequences with orthography profiles that one can store in TSV or CSV files. To get started, add your profile to a TSV or a CSV file, just as they are described by Moran and Cysouw (2018) and then load the data with the help of the `OrthoProfile.from_file` method.
+
+```python
+>>> from grsn import OrthoProfile
+>>> op = OrthoProfile.from_file("data.csv", delimiter=",", grapheme_column="Grapheme", null='NULL')
+>>> op("k_hats_h@", column="IPA")
+['kʰ', 'a', 'tsʰ', 'ə']
+```
+
+Having loaded an orthography profile, you can convert or segment a sequence by calling the object, as shown above, and specifying the column name.
+
+The delimiter allows you to handle both TSV and CSV data (thanks to the [csvw](https://pypi.org/project/csvw) package used to parse CSV files, which is currently the only dependency of `grsn`). The keyword `grapheme_column` points to the column that contains the base orthography from which conversion starts (default name `Grapheme` follows the terminology of Moran and Cysouw and the [segments](https://pypi.org/project/segments) package). The keyword `null` points to the value that would be ignored when encountered as a replacement value in the conversion routine (as a default set to `'NULL'`).
+
+Additionally, you can initiate a profile from a list of dictionaries, from a table, and from a list of segmented words.
+
+```python
+>>> op1 = OrthoProfile([{"Grapheme": "a", "IPA": "a"}, {"Grapheme": "k_h", "IPA": "kʰ"}, {"Grapheme": "ts_h", "IPA": "tsʰ"}, {"Grapheme": "@", "IPA": "ə"}])
+>>> op2 = OrthoProfile.from_table([["Grapheme", "IPA"], ["a", "a"], ["k_h", "kʰ"], ["@", "ə"], ["ts_h", "tsʰ"]])
+>>> op3 = OrthoProfile.from_words(["k_h a ts_h @"], mapping=lambda x: x.split())
+```
+
+In the last case, no replacement is defined, but instead, the frequency of each element will be calculated. The underlying function used to retrieve an orthography profile from a list of segmented words is the `retrieve_profile` function.
+
+```python
+>>> retrieve_profile(["k_h a ts_h @"], mapping=lambda x: x.split())
+defaultdict(<function grsn.retrieve_profile.<locals>.<lambda>()>,
+            {'k_h': {'Grapheme': 'k_h', 'Frequency': 1},
+             'a': {'Grapheme': 'a', 'Frequency': 1},
+             'ts_h': {'Grapheme': 'ts_h', 'Frequency': 1},
+             '@': {'Grapheme': '@', 'Frequency': 1}})
+```
+
+This means, if you want to use a retrieved profile for conversion, you have to add entries for the conversion yourself, for example, by writing the profile to file and then adding a column for the conversion.
+
+```python
+>>> op3.write("data.csv", delimiter=",")
+```
+
+Alternatively, you can manipulate the `profile` attribute of the `OrthoProfile` class. If you do so, however, you must add new values also to the `columns` attribute of the `OrthoProfile` class, since `columns` determines what is written to file.
+
+```python
+>>> op3.profile["k_h"]["IPA"] = "kʰ"
+>>> op3.profile["ts_h"]["IPA"] = "tsʰ"
+>>> op3.profile["a"]["IPA"] = "a"
+>>> op3("k_hats_h@", column="IPA")
+ValueError: The column IPA is not available.
+>>> op3.columns += ["IPA"]
+>>> op3("k_hats_h@", column="IPA")
+['kʰ', 'a', 'tsʰ', '«column--IPA-not-found»']
+```
+
+Not that in our example above, the conversion for `"ə"` fails, since the grapheme was not defined when manipulating the orthography profile. As a result, the conversion explicitly points to the problem in the output.
 
