@@ -1,6 +1,6 @@
-# Grouping Sounds with Orthography Profiles
+# Grouping Sounds with Conversion Tables
 
-This package offers very straightforward implementations for the Orthography Profile method proposed by [Moran and Cysouw (2018)](https://langsci-press.org/catalog/book/176). The implementation differs from the representative implementation in the [segments](https://pypi.org/project/segments) package in so far as it does not allow for rule-based orthography profile parsing, following the experience we had with using orthography profiles for the [Lexibank repository](https://lexibank.clld.org). As a result, the code is much more limited in size, but it is also more flexible with respect to the way in which sequence manipulations with orthography profiles can be handled.
+This package takes inspiration from the Orthography Profile method proposed by [Moran and Cysouw (2018)](https://langsci-press.org/catalog/book/176) by offering a very straightforward way to manipulate sound sequences with conversion tables.
 
 ## Basic Usage: Segmenting and Converting with the `segment` and `convert` Functions
 
@@ -10,20 +10,20 @@ The package offers to basic methods, one to segment and one to convert a string 
 >>> from grsn import segment, convert
 ```
 
-I order to segment a string into a list of graphemes, you only need to pass a list of graphemes to the function (a Python iterable that can be queried with `a in b`, such as a list, a dictionary, or a set).
+I order to segment a string into a list of graphemes, you only need to pass a list of graphemes or subsequences to the function (a Python iterable that can be queried with `a in b`, such as a list, a dictionary, or a set).
 
-In order to convert a segmented string, we use a dictionary lookup with the specific structure for the representation of orthography profiles presented in the JavaScript implementation by [List (2023)](https://calc.hypotheses.org/6361). 
+In order to convert a segmented string, we use a dictionary lookup with the specific structure for the representation of conversion tables presented in the JavaScript implementation by [List (2023)](https://calc.hypotheses.org/6361). 
 
 ```python
 >>> lookup = {
-        "@": {"Grapheme": "a", "IPA": "ə"},
-        "a": {"Grapheme": "a", "IPA": "a"},
-        "ts_h": {"Grapheme": "a", "IPA": "tsʰ"},
-        "k_h": {"Grapheme": "a", "IPA": "kʰ"},
+        "@": {"Sequence": "a", "IPA": "ə"},
+        "a": {"Sequence": "a", "IPA": "a"},
+        "ts_h": {"Sequence": "a", "IPA": "tsʰ"},
+        "k_h": {"Sequence": "a", "IPA": "kʰ"},
     }
 ```
 
-In order to convert from one orthography to another orthography profile we first have to segment our sequence, and since the lookup we just defined can be queried if it contains a character sequence or not, we can conveniently just use this lookup:
+In order to convert from one sequence to another sequence representation we first have to segment our sequence, and since the lookup we just defined can be queried if it contains a character sequence or not, we can conveniently just use this lookup:
 
 ```python
 >>> segments = segment("k_hats_h@", lookup)
@@ -39,7 +39,7 @@ To convert this sequence now into its IPA representation, we apply the `convert`
 ['kʰ', 'a', 'tsʰ', 'ə']
 ```
 
-If we use elements that are not given as such in the profile, this will be marked by default by putting the character in `«»`-quotes. 
+If we use elements that are not given as such in the conversion table, this will be marked by default by putting the character in `«»`-quotes. 
 
 ```python
 >>> tokens = convert(segment("k_hits_h@", lookup), lookup, column="IPA")
@@ -55,13 +55,13 @@ You can modify this behaviour with the `missing` keyword:
 ['kʰ', '?i¿', 'tsʰ', 'ə']
 ```
 
-## Extended Usage: `OrthoProfile` Class
+## Extended Usage: `SoundGrouper` Class
 
-While `segment` and `convert` offer two basic functions that are equivalent in principle to the usage of orthography profiles as described by Moran and Cysouw (2018), they are not that convenient to use when dealing with externally stored orthography profiles that one wants to use to manipulate many different sequences. Here, the `OrthoProfile` class offers a more robust way to manipulate sequences with orthography profiles that one can store in TSV or CSV files. To get started, add your profile to a TSV or a CSV file, just as they are described by Moran and Cysouw (2018) and then load the data with the help of the `OrthoProfile.from_file` method.
+While `segment` and `convert` offer two basic functions to manipulate sequences with conversion tables, they are not that convenient to use when dealing with externally stored tables that one wants to use to manipulate many different sequences. Here, the `SoundGrouper` class offers a more robust way to manipulate sequences with conversion tables that one can store in TSV or CSV files. To get started, add your conversion table to a TSV or a CSV file and then load the data with the help of the `SoundGrouper.from_file` method.
 
 ```python
->>> from grsn import OrthoProfile
->>> op = OrthoProfile.from_file("data.csv", delimiter=",", grapheme_column="Grapheme", null='NULL')
+>>> from grsn import SoundGrouper
+>>> op = SoundGrouper.from_file("data.csv", delimiter=",", grapheme_column="Grapheme", null='NULL')
 >>> op("k_hats_h@", column="IPA")
 ['kʰ', 'a', 'tsʰ', 'ə']
 ```
@@ -73,9 +73,9 @@ The delimiter allows you to handle both TSV and CSV data (thanks to the [csvw](h
 Additionally, you can initiate a profile from a list of dictionaries, from a table, and from a list of segmented words.
 
 ```python
->>> op1 = OrthoProfile([{"Grapheme": "a", "IPA": "a"}, {"Grapheme": "k_h", "IPA": "kʰ"}, {"Grapheme": "ts_h", "IPA": "tsʰ"}, {"Grapheme": "@", "IPA": "ə"}])
->>> op2 = OrthoProfile.from_table([["Grapheme", "IPA"], ["a", "a"], ["k_h", "kʰ"], ["@", "ə"], ["ts_h", "tsʰ"]])
->>> op3 = OrthoProfile.from_words(["k_h a ts_h @"], mapping=lambda x: x.split())
+>>> op1 = SoundGrouper([{"Grapheme": "a", "IPA": "a"}, {"Grapheme": "k_h", "IPA": "kʰ"}, {"Grapheme": "ts_h", "IPA": "tsʰ"}, {"Grapheme": "@", "IPA": "ə"}])
+>>> op2 = SoundGrouper.from_table([["Grapheme", "IPA"], ["a", "a"], ["k_h", "kʰ"], ["@", "ə"], ["ts_h", "tsʰ"]])
+>>> op3 = SoundGrouper.from_words(["k_h a ts_h @"], mapping=lambda x: x.split())
 ```
 
 In the last case, no replacement is defined, but instead, the frequency of each element will be calculated. The underlying function used to retrieve an orthography profile from a list of segmented words is the `retrieve_profile` function.
@@ -95,12 +95,12 @@ This means, if you want to use a retrieved profile for conversion, you have to a
 >>> op3.write("data.csv", delimiter=",")
 ```
 
-Alternatively, you can manipulate the `profile` attribute of the `OrthoProfile` class. If you do so, however, you must add new values also to the `columns` attribute of the `OrthoProfile` class, since `columns` determines what is written to file.
+Alternatively, you can manipulate the `converter` attribute of the `SoundGrouper` class. If you do so, however, you must add new values also to the `columns` attribute of the `SoundGrouper` class, since `columns` determines what is written to file.
 
 ```python
->>> op3.profile["k_h"]["IPA"] = "kʰ"
->>> op3.profile["ts_h"]["IPA"] = "tsʰ"
->>> op3.profile["a"]["IPA"] = "a"
+>>> op3.converter["k_h"]["IPA"] = "kʰ"
+>>> op3.converter["ts_h"]["IPA"] = "tsʰ"
+>>> op3.converter["a"]["IPA"] = "a"
 >>> op3("k_hats_h@", column="IPA")
 ValueError: The column IPA is not available.
 >>> op3.columns += ["IPA"]
@@ -108,5 +108,5 @@ ValueError: The column IPA is not available.
 ['kʰ', 'a', 'tsʰ', '«column--IPA-not-found»']
 ```
 
-Not that in our example above, the conversion for `"ə"` fails, since the grapheme was not defined when manipulating the orthography profile. As a result, the conversion explicitly points to the problem in the output.
+Not that in our example above, the conversion for `"ə"` fails, since the segment was not defined when manipulating the conversion table. As a result, the conversion explicitly points to the problem in the output.
 
