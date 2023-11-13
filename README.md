@@ -1,6 +1,6 @@
 # Grouping Sounds with Orthography Profiles
 
-This package offers very straightforward implementations for the Orthography Profile method proposed by [Moran and Cysouw (2018)](https://langsci-press.org/catalog/book/176). The implementation differs from the representative implementation in the segments package in so far as it does not allow for rule-based orthography profile parsing, following the experience we had with using orthography profiles for the [Lexibank repository](https://lexibank.clld.org). As a result, the code is much more limited in size, but it is also more flexible with respect to the way in which sequence manipulations with orthography profiles can be handled.
+This package offers very straightforward implementations for the Orthography Profile method proposed by [Moran and Cysouw (2018)](https://langsci-press.org/catalog/book/176). The implementation differs from the representative implementation in the [segments](https://pypi.org/project/segments) package in so far as it does not allow for rule-based orthography profile parsing, following the experience we had with using orthography profiles for the [Lexibank repository](https://lexibank.clld.org). As a result, the code is much more limited in size, but it is also more flexible with respect to the way in which sequence manipulations with orthography profiles can be handled.
 
 ## Basic Usage: Segmenting and Converting with the `segment` and `convert` Functions
 
