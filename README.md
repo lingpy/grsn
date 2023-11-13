@@ -50,7 +50,7 @@ If we use elements that are not given as such in the profile, this will be marke
 You can modify this behaviour with the `missing` keyword:
 
 ```python
->>> tokens = convert(segment("k_hits_h@", lookup), lookup, column="IPA", missing="?{0}¿)
+>>> tokens = convert(segment("k_hits_h@", lookup), lookup, column="IPA", missing="?{0}¿")
 >>> tokens
 ['kʰ', '?i¿', 'tsʰ', 'ə']
 ```
